@@ -14,7 +14,6 @@ import pywt
 import scipy.signal as sgl
 from wavelet_transform import *
 
-
 def smoothDataFrame(dataframe):
 
     new_df = pd.DataFrame(columns=dataframe.columns)
@@ -24,6 +23,7 @@ def smoothDataFrame(dataframe):
         for j in dataframe.columns:
 
             EEG = dataframe[j][i]
+            EEG = waveletShrinkageDenoising(EEG)
             plt.plot(EEG)
             EEG = eliminateOutliers(EEG)
             plt.plot(EEG)
@@ -40,7 +40,7 @@ def eliminateOutliers(EEG):
 
     newEEG = np.array([])
 
-    for section in np.split(EEG[:EEG.shape[0]-1], 10):
+    for section in np.split(EEG[:EEG.shape[0]-1], 2):
         mu = np.mean(section)
         sigma = np.std(section)
         for i, p in enumerate(section):
@@ -52,23 +52,53 @@ def eliminateOutliers(EEG):
 
     return newEEG
 
+def localnormalise(array, a, b ):
+    newarray = np.array([])
+
+    Xmin = np.min(array)
+    Xmax = np.max(array)
+
+    for X in array:
+        Xnew = a + ((X - Xmin)*(b-a))/(Xmax - Xmin)
+        newarray = np.append(newarray, Xnew)
+
+    return newarray
+
+def thresholdEstimation(X):
+
+    l = len(X)
+    sx2 = [sx * sx for sx in np.absolute(X)]
+    sx2.sort()
+
+    cumsumsx2 = np.cumsum(sx2)
+
+    risks = []
+    for i in range(0, l):
+        risks.append((l - 2 * (i + 1) + (cumsumsx2[i] + (l - 1 - i) * sx2[i])) / l)
+    mini = np.argmin(risks)
+    th = np.sqrt(sx2[mini])
+
+
+
 def waveletShrinkageDenoising(EEG):
 
-    plt.plot(EEG)
+    plt.plot(EEG, color='red')
+
     W = cwt(EEG, 0.1,np.arange(1,40), wf='morlet', p=2)
-    #threshold = np.var(EEG) * np.sqrt(2* np.log(len(EEG)))
+
+    threshold = np.var(EEG) * np.sqrt(2* np.log(len(EEG)))
+    print(threshold)
     newW = []
     for w in W:
-        threshold = np.var(w) * np.sqrt(2 * np.log(len(w)))
-        neww = pywt.threshold(w, 1, 'soft')
+        neww = pywt.threshold(w, threshold, 'hard')
         newW.append(neww)
 
     signal = icwt(newW, 0.1, np.arange(1,40), wf='morlet', p=2)
-
-    plt.plot(signal)
+    signal = localnormalise(signal)
+    plt.plot(signal, color='blue')
     plt.show()
 
-    sys.exit()
+    return EEG
 
 
 
