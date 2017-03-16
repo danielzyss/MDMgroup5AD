@@ -30,7 +30,6 @@ def MatlabStructure2PandasDataframe(fileaddress, dictionnaryname, outputname):
     newDFeyesclosed.to_pickle('data/' + outputname + 'eyesclosed.pk')
     newDFeyesopened.to_pickle('data/' + outputname + 'eyesopened.pk')
 
-
 def loadDataFrames():
 
     ADeyesclosed = pd.read_pickle('data/ADeyesclosed.pk')
@@ -39,3 +38,12 @@ def loadDataFrames():
     CONTROLeyesopened = pd.read_pickle('data/CONTROLeyesopened.pk')
 
     return ADeyesclosed, ADeyesopened , CONTROLeyesclosed, CONTROLeyesopened
+
+
+def ExtractLabels():
+
+    control = io.loadmat('data/Data_from_Cntl.mat')
+    labels = [x for x in control['Data_from_Cntl'][0][3][3]]
+    labels = [l[0] for l in labels[0]]
+
+    return(np.array(labels))

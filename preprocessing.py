@@ -3,8 +3,6 @@ import numpy as np
 import scipy.signal as sgl
 import pywt
 
-
-
 def eliminateOutliers(EEG):
 
     newEEG = np.array([])
@@ -54,7 +52,6 @@ def waveletShrinkageDenoising(EEG):
     W = cwt(EEG, 0.1,np.arange(1,40), wf='morlet', p=1)
 
     threshold = WaveletthresholdEstimation(EEG)
-    print(threshold)
 
     newW = []
     for w in W:
@@ -202,3 +199,7 @@ def morletft(s, w, w0, dt):
 def normalization(s, dt):
     PI2 = 2 * np.pi
     return np.sqrt((PI2 * s) / dt)
+
+
+def SGSmoothing(EEG):
+    return sgl.savgol_filter(EEG,101,2)

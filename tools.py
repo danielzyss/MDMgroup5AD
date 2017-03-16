@@ -2,16 +2,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-import scipy.signal as signal
 import scipy.stats as stats
 import seaborn as sns
 import networkx as nx
 from scipy.cluster.hierarchy import dendrogram, linkage
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.preprocessing import normalize
-from scipy.spatial.distance import euclidean
-import pywt
-import scipy.signal as sgl
 from preprocessing import *
 
 def preprocess(dataframe):
@@ -24,6 +18,7 @@ def preprocess(dataframe):
 
             EEG = dataframe[j][i]
             EEG = eliminateOutliers(EEG)
+            #EEG = SGSmoothing(EEG)
             EEG = waveletShrinkageDenoising(EEG)
 
             row.append(EEG)
@@ -91,6 +86,6 @@ def mst2dendrogram(mstarray):
 def plotcorrelation(correlationarray):
 
     f, ax = plt.subplots(figsize=(12, 9))
-    sns.heatmap(correlationarray, vmin=0.0, vmax=1.0, square=True)
+    sns.heatmap(correlationarray, vmin=0.0, vmax=1.0, square=True, cmap="YlGnBu")
     f.tight_layout()
     plt.show()

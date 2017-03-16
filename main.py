@@ -4,22 +4,20 @@ import pandas as pd
 from matlabTranslator import *
 from tools import *
 
-
-
-
 print('Importing Data.. ')
 ADeyesclosed, ADeyesopened, CNTLeyesclosed, CNTLeyesopened = loadDataFrames()
+labels = ExtractLabels()
 
 if __name__ == '__main__':
 
-    print('Smoothing..')
-    ADeyesclosedSmoothed = preprocess(ADeyesclosed)
+    print('Preprocessing..')
+    ADeyesclosedSmoothed = preprocess(ADeyesclosed.head(1))
 
     print('Creating Correlation Matrix..')
     correlMatArray = correlationDataFrame(ADeyesclosedSmoothed)
 
-    # print('Plotting Correlation Matrix for Patient 0')
-    # plotcorrelation(pd.DataFrame(correlMatArray[0]))
+    print('Plotting Correlation Matrix for Patient 0')
+    plotcorrelation(pd.DataFrame(correlMatArray[0]))
 
     print('Creating Graphs..')
     graphArray = correlationmatrix2graph(correlMatArray)
