@@ -8,9 +8,12 @@ import seaborn as sns
 import networkx as nx
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.cluster import AgglomerativeClustering
-import fastdtw
 from sklearn.preprocessing import normalize
 from scipy.spatial.distance import euclidean
+import pywt
+import scipy.signal as sgl
+from wavelet_transform import *
+
 
 def smoothDataFrame(dataframe):
 
@@ -21,12 +24,52 @@ def smoothDataFrame(dataframe):
         for j in dataframe.columns:
 
             EEG = dataframe[j][i]
+            plt.plot(EEG)
+            EEG = eliminateOutliers(EEG)
+            plt.plot(EEG)
             EEG = signal.savgol_filter(EEG, 101, 2, mode='nearest')
+            plt.plot(EEG)
+            plt.show()
             row.append(EEG)
 
         new_df.loc[i] = row
 
     return new_df
+
+def eliminateOutliers(EEG):
+
+    newEEG = np.array([])
+
+    for section in np.split(EEG[:EEG.shape[0]-1], 10):
+        mu = np.mean(section)
+        sigma = np.std(section)
+        for i, p in enumerate(section):
+            if p>(mu + 2*sigma):
+                section[i] = mu + 2*sigma
+            if p<(mu - 2*sigma):
+                section[i] = mu - 2*sigma
+        newEEG = np.concatenate((newEEG, section))
+
+    return newEEG
+
+def waveletShrinkageDenoising(EEG):
+
+    plt.plot(EEG)
+    W = cwt(EEG, 0.1,np.arange(1,40), wf='morlet', p=2)
+    #threshold = np.var(EEG) * np.sqrt(2* np.log(len(EEG)))
+    newW = []
+    for w in W:
+        threshold = np.var(w) * np.sqrt(2 * np.log(len(w)))
+        neww = pywt.threshold(w, 1, 'soft')
+        newW.append(neww)
+
+    signal = icwt(newW, 0.1, np.arange(1,40), wf='morlet', p=2)
+
+    plt.plot(signal)
+    plt.show()
+
+    sys.exit()
+
 
 
 def correlationDataFrame(dataframe):
@@ -44,7 +87,7 @@ def correlationDataFrame(dataframe):
                 c = abs(stats.pearsonr(dataframe[n][i], dataframe[m][i])[0])
                 correlMatrix[j,k] = c
 
-        correlMatrix = normalize(correlMatrix)
+        # correlMatrix = normalize(correlMatrix)
         correlation.append(correlMatrix)
 
     return np.array(correlation)
@@ -78,7 +121,7 @@ def mst2dendrogram(mstarray):
     for mst in mstarray:
         distance = nx.floyd_warshall_numpy(mst)
         linkagematrix = linkage(distance)
-        dendro = dendrogram(linkagematrix)
+        dendro = dendrogram(linkagematrix, truncate_mode='mlab')
         clusteringarray.append(dendro)
         plt.show()
 
@@ -88,6 +131,6 @@ def mst2dendrogram(mstarray):
 def plotcorrelation(correlationarray):
 
     f, ax = plt.subplots(figsize=(12, 9))
-    sns.heatmap(correlationarray, vmax=1.0, square=True)
+    sns.heatmap(correlationarray, vmin=0.0, vmax=1.0, square=True)
     f.tight_layout()
     plt.show()

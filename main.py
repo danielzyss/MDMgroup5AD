@@ -16,7 +16,7 @@ if __name__ == '__main__':
     ADeyesclosedSmoothed = smoothDataFrame(ADeyesclosed)
 
     print('Creating Correlation Matrix..')
-    correlMatArray = correlationDataFrame(ADeyesclosedSmoothed.head())
+    correlMatArray = correlationDataFrame(ADeyesclosedSmoothed)
 
     # print('Plotting Correlation Matrix for Patient 0')
     # plotcorrelation(pd.DataFrame(correlMatArray[0]))
