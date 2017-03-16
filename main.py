@@ -13,7 +13,7 @@ ADeyesclosed, ADeyesopened, CNTLeyesclosed, CNTLeyesopened = loadDataFrames()
 if __name__ == '__main__':
 
     print('Smoothing..')
-    ADeyesclosedSmoothed = smoothDataFrame(ADeyesclosed)
+    ADeyesclosedSmoothed = preprocess(ADeyesclosed)
 
     print('Creating Correlation Matrix..')
     correlMatArray = correlationDataFrame(ADeyesclosedSmoothed)
