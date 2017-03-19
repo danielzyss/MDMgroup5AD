@@ -49,7 +49,7 @@ def WaveletthresholdEstimation(X):
 
 def waveletShrinkageDenoising(EEG):
 
-    W = cwt(EEG, 0.1,np.arange(1,40), wf='morlet', p=1)
+    W = cwt(EEG, 0.1,np.arange(1,10), wf='morlet', p=1)
 
     threshold = WaveletthresholdEstimation(EEG)
 
@@ -58,7 +58,7 @@ def waveletShrinkageDenoising(EEG):
         neww = pywt.threshold(w, threshold, 'hard')
         newW.append(neww)
 
-    signal = icwt(newW, 0.1, np.arange(1,40), wf='morlet', p=1)
+    signal = icwt(newW, 0.1, np.arange(1,10), wf='morlet', p=1)
 
     return signal
 

@@ -5,11 +5,13 @@ import sys
 import scipy.stats as stats
 import seaborn as sns
 import networkx as nx
-from scipy.cluster.hierarchy import dendrogram, linkage
-from preprocessing import *
+
+from models.HierarchicalClustering import *
+from models.AverageCorrelation import *
+from models.splittedTimeSeries import *
+
 
 def preprocess(dataframe):
-
     new_df = pd.DataFrame(columns=dataframe.columns)
 
     for i in range(0, dataframe.shape[0]):
@@ -26,6 +28,15 @@ def preprocess(dataframe):
         new_df.loc[i] = row
 
     return new_df
+
+def hierarchicalClustering(dataframe, labels):
+
+    correlMatArray = correlationDataFrame(dataframe)
+    graphArray = correlationmatrix2graph(correlMatArray)
+    mstArray = graph2minimumspanningtree(graphArray)
+    dendroarray = mst2dendrogram(mstArray, labels)
+
+    return dendroarray
 
 
 def correlationDataFrame(dataframe):
@@ -46,41 +57,6 @@ def correlationDataFrame(dataframe):
         correlation.append(correlMatrix)
 
     return np.array(correlation)
-
-
-def correlationmatrix2graph(correlmatrixarray):
-    grapharray = []
-
-    for correlmatrix in correlmatrixarray:
-        gr = nx.from_numpy_matrix(correlmatrix, parallel_edges=False)
-        grapharray.append(gr)
-
-    return grapharray
-
-
-def graph2minimumspanningtree(grapharray):
-
-    minimumspanningtreearray = []
-
-    for graph in grapharray:
-        mst = nx.minimum_spanning_tree(graph)
-        minimumspanningtreearray.append(mst)
-
-    return minimumspanningtreearray
-
-
-def mst2dendrogram(mstarray):
-
-    clusteringarray = []
-
-    for mst in mstarray:
-        distance = nx.floyd_warshall_numpy(mst)
-        linkagematrix = linkage(distance)
-        dendro = dendrogram(linkagematrix, truncate_mode='mlab')
-        clusteringarray.append(dendro)
-        plt.show()
-
-    return clusteringarray
 
 
 def plotcorrelation(correlationarray):

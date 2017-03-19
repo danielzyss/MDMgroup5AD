@@ -4,6 +4,7 @@ import pandas as pd
 from matlabTranslator import *
 from tools import *
 
+
 print('Importing Data.. ')
 ADeyesclosed, ADeyesopened, CNTLeyesclosed, CNTLeyesopened = loadDataFrames()
 labels = ExtractLabels()
@@ -11,22 +12,11 @@ labels = ExtractLabels()
 if __name__ == '__main__':
 
     print('Preprocessing..')
-    ADeyesclosedSmoothed = preprocess(ADeyesclosed.head(1))
+    ADeyesclosedPreprocessed = preprocess(ADeyesclosed.head(10))
 
-    print('Creating Correlation Matrix..')
-    correlMatArray = correlationDataFrame(ADeyesclosedSmoothed)
+    print('Dendrogram')
+    dendrogramArray = hierarchicalClustering(ADeyesclosedPreprocessed, labels)
 
-    print('Plotting Correlation Matrix for Patient 0')
-    plotcorrelation(pd.DataFrame(correlMatArray[0]))
-
-    print('Creating Graphs..')
-    graphArray = correlationmatrix2graph(correlMatArray)
-
-    print('Minimum Spanning Tree..')
-    mstArray = graph2minimumspanningtree(graphArray)
-
-    print('Dendrawing.. ')
-    dendroarray = mst2dendrogram(graphArray)
 
 
 
