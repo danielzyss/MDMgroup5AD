@@ -6,67 +6,60 @@ import scipy.stats as stats
 import seaborn as sns
 import networkx as nx
 from scipy.spatial.distance import euclidean
-
 from models.HierarchicalClustering import *
 from models.AverageCorrelation import *
+import tqdm
 
 
-DictionnaryofPosition = {'AFz' : [55, 88], 'C1': [44, 55], 'C3': [33, 55],
-                         'C4': [77, 55], 'C5': [22, 55], 'C6': (88, 55),
-                         'F1': [47, 75], 'F3': [38, 76], 'F4': [72, 76],
-                         'F5': [30, 80], 'F6': [80, 80], 'F7': [23, 86],
-                         'F8': [87, 86], 'F9': [5, 75], 'P2': [63, 35],
-                         'P4': [72, 34], 'P5': [30, 30], 'P6': [80, 30],
-                         'AF2': [60, 88], 'AF4': [66, 88], 'AF6': [72, 90],
-                         'Cz': [55, 55], 'F2': [63, 75], 'F10': [105, 75],
-                         'AF1': [105, 75], 'AF3': [44,88], 'AF5': [38, 90],
-                         'AF7': [33, 94], 'CP1': [44, 44], 'CP2': [66,44],
-                         'CP3': [32, 41], 'CP4': [78, 41], 'CP5': [22, 36],
-                         'CP6': [88, 36], 'CPz': [55,44], 'FC1': [44,66],
-                         'FC3': [32, 69], 'FC5': [22, 74], 'FCz': [55,66],
-                         'Fp2': [64, 102], 'L1': [45,2], 'L2': [65,2],
-                         'O2': [64, 8], 'FT8': [95, 80], 'Fz': [55,77],
-                         'Lz': [55,0], 'Nz': [55, 110], 'Oz': [55,11],
-                         'PO1': [50, 22], 'PO10': [85, 8], 'PO2': [60, 22],
-                         'PO3': [44,22], 'PO4': [66,22], 'PO5': [38, 20],
-                         'PO7': [33,16], 'PO9': [25, 8], 'POz': [55,22],
-                         'P1': [47, 35], 'P3': [38, 34], 'P7': [23,24],
-                         'P9': [5,25], 'P10': [105, 25], 'T7': [11,55],
-                         'T8': [99,55], 'T9': [0,55], 'T10': [110, 55],
-                         'AF8': [77,94], 'FC2': [66,66], 'FC4': [78, 69],
-                         'FC6': [88, 74], 'FT7': [15, 80], 'FT9': [2, 65],
-                         'FT10': [108, 65], 'C2': [66,55], 'PO6': [72, 20],
-                         'Pz': [55,33], 'TP7': [15, 30], 'TP8': [95, 30],
-                         'TP9': [2, 35], 'TP10': [108, 35], 'Fp1' : [46,102],
-                         'P8': [87, 24], 'O1':[46,8], 'PO8': [77,16]}
+def plotElectrodes(PosDict):
+
+    for key in PosDict.keys():
+        plt.scatter(PosDict[key][0], PosDict[key][1])
+
+    for key in PosDict.keys():
+        legend = key + ': (' + str(PosDict[key][0]) + ',' + str(PosDict[key][1]) + ')'
+        x = PosDict[key][0]
+        y = PosDict[key][1]
+        plt.annotate(legend, xy=(x,y),  textcoords='offset points', ha='right', va='bottom',
+            bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'), fontsize=5)
+    plt.xlim(-20, 170)
+    plt.ylim(-20, 190)
+    plt.xticks([])
+    plt.yticks([])
+    plt.title('Coordinates and physical disposition of the 64 electrodes')
+    plt.savefig('ElectrodeCoordinates.png', dpi=300)
+
+def HighCorrelationfrequencyMatrix(slicedCorrelationArray, priorMatArray):
+
+    priorMat = np.empty(shape=priorMatArray[0].shape)
+    for i in range(0, len(priorMatArray[0])):
+        for j in range(0, len(priorMatArray[0])):
+            aboveth = 0
+            for p in range(len(priorMatArray)):
+                if priorMatArray[p][i,j] > np.mean(priorMatArray[p]):
+                    aboveth+=1
+            priorMat[i,j] = aboveth/len(priorMatArray)
 
 
-#1 create complete Graph
-#2 find a way to put label in dataframe
-#1.5 Create a geographic maps of the Electrode
-#2 Obtain the correlation Matrix for the time series by probability
-#4 weight graph with correlation
-#5 find path from highest correlation to 5 nodes - 10 nodes - ...
+    bayesian_matrix = np.empty(shape=priorMat.shape)
 
+    for i in range(0, bayesian_matrix.shape[0]):
+        for j in range(0, bayesian_matrix.shape[1]):
 
-def HighCorrelationfrequencyMatrix(slicedCorrelationArray):
+            prior = priorMat[i,j]
+            aboveth = 0
+            for p in range(0,len(slicedCorrelationArray)):
+                for s in range(0, len(slicedCorrelationArray[0])):
+                    if slicedCorrelationArray[p][s][i,j] > np.mean(slicedCorrelationArray[p][s]):
+                        aboveth +=1
 
-    new_matrix = np.empty(shape=slicedCorrelationArray[0].shape)
-    threshold = 0.2
+            prob = aboveth/ (len(slicedCorrelationArray) * len(slicedCorrelationArray[0]))
+            bayesian_matrix[i,j] = (prior * prob)/0.5
 
-    for i in range(new_matrix.shape[0]):
+    bayesian_matrix = matrixnormalise(bayesian_matrix, 0, 1)
+    return bayesian_matrix
 
-        for j in range(new_matrix.shape[1]):
-
-            abovethreshold = 0
-            for n in range(len(slicedCorrelationArray)):
-
-                if slicedCorrelationArray[n][i,j] > threshold:
-                    abovethreshold+=1
-            frequency = abovethreshold/len(slicedCorrelationArray)
-            new_matrix[i,j] = frequency
-
-    return new_matrix
 
 def createConnectedWeightedGraph(positiondict, probmat, label):
 
@@ -86,63 +79,59 @@ def createConnectedWeightedGraph(positiondict, probmat, label):
                 combination.append([label[i], label[j]])
                 combination.append([label[j], label[i]])
                 w = euclidean(positiondict[label[i]], positiondict[label[j]])
-                if w < 10:
-                    w = w * (1- probmat[i,j])
-                    G.add_edge(label[i],label[j], weight=w)
-                else:
-                    w = 999999 * (1- probmat[i,j])
-                    G.add_edge(label[i], label[j], weight=w)
+                print(probmat[i,j])
+                w = w*(1/probmat[i,j]) - 1
+                G.add_edge(label[i], label[j], weight=w)
 
     return G
 
-def findPotentialMostUsedPath(G, probmat, label):
+def findPotentialMostUsedPath(G, probmat, label, nb):
 
+    paths = []
+    combination = []
 
-    maxval = 0.0
-    maxindex = []
+    for n in range(0, nb):
 
-    for i in range(0,probmat.shape[0]):
-        for j in range(0,probmat.shape[1]):
-            if i!=j:
-                if probmat[i,j]>maxval:
+        maxval = 0.0
+        maxindex = []
+
+        for i in range(0,probmat.shape[0]):
+            for j in range(0,probmat.shape[1]):
+                if (i!=j) and ([i,j] not in combination) and (probmat[i,j]>maxval):
                     maxindex = [i,j]
                     maxval = probmat[i,j]
+                    combination.append([i,j])
+                    combination.append([j,i])
 
+        A = label[maxindex[0]]
+        B = label[maxindex[1]]
 
-    originA = label[maxindex[0]]
-    originB = label[maxindex[1]]
+        paths.append(nx.dijkstra_path(G, A, B))
 
-    #path from A:
-
-    path = nx.dijkstra_path(G, originA, originB)
-
-    # node = originA
-    # for i in range(0, pathlength):
-    #     path.append(node)
-    #     neighbors = G.neighbors(node)
-    #     weights = np.array([G[i][x]['weight'] for x in neighbors])
-    #     node = neighbors[np.argmin(weights)]
-
-    return path
+    return paths
 
 
 
 def SlicedCorrelationDataframe(dataframe, slices):
+
     correlation = []
 
     for i in range(0, dataframe.shape[0]):
 
         correlationslicearray = []
 
-        splitedarray = [np.split(y, slices) for y in [x[:len(x) - 1] for x in dataframe.iloc[i, :].as_matrix()]]
+        splitedarray = [np.array(np.split(y, slices)) for y in [x[:len(x) - 1] for x in dataframe.iloc[i, :].as_matrix()]]
 
-        for sl in [np.array(splitedarray[:][n]) for n in range(0, slices)]:
+        slicesarray = []
+        for n in range(0, slices):
+            slicesarray.append(np.array([x[n] for x in splitedarray]))
 
-            correlationslice = np.zeros(shape=(len(dataframe.columns), len(dataframe.columns)))
+        for sl in slicesarray:
+            correlationslice = np.zeros(shape=(len(sl), len(sl)))
 
-            for j in range(sl.shape[0]):
+            for j in range(len(sl)):
+                for k in range(len(sl)):
 
-                for k in range(sl.shape[0]):
                     correlationslice[j, k] = abs(stats.pearsonr(sl[j], sl[k])[0])
 
             correlationslicearray.append(correlationslice)

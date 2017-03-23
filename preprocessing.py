@@ -2,12 +2,14 @@ import pandas as pd
 import numpy as np
 import scipy.signal as sgl
 import pywt
+import matplotlib.pyplot as plt
+import sys
 
 def eliminateOutliers(EEG):
 
     newEEG = np.array([])
 
-    for section in np.split(EEG[:EEG.shape[0]-1], 2):
+    for section in np.split(EEG[:EEG.shape[0]-1], 10):
         mu = np.mean(section)
         sigma = np.std(section)
         for i, p in enumerate(section):
@@ -31,6 +33,17 @@ def localnormalise(array, a, b ):
 
     return newarray
 
+def matrixnormalise(matrix, a, b):
+    newmatrix = np.empty(shape=matrix.shape)
+    Xmin = np.min(matrix)
+    Xmax = np.max(matrix)
+
+    for i in range(matrix.shape[0]):
+        for j in range(matrix.shape[1]):
+            newmatrix[i,j] = a + ((matrix[i,j]-Xmin)*(b-a))/(Xmax-Xmin)
+
+    return newmatrix
+
 def WaveletthresholdEstimation(X):
 
     l = len(X)
@@ -49,7 +62,7 @@ def WaveletthresholdEstimation(X):
 
 def waveletShrinkageDenoising(EEG):
 
-    W = cwt(EEG, 0.1,np.arange(1,10), wf='morlet', p=1)
+    W = cwt(EEG, 0.1,np.arange(1,11), wf='morlet', p=1)
 
     threshold = WaveletthresholdEstimation(EEG)
 
@@ -58,7 +71,7 @@ def waveletShrinkageDenoising(EEG):
         neww = pywt.threshold(w, threshold, 'hard')
         newW.append(neww)
 
-    signal = icwt(newW, 0.1, np.arange(1,10), wf='morlet', p=1)
+    signal = icwt(newW, 0.1, np.arange(1,11), wf='morlet', p=1)
 
     return signal
 

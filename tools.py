@@ -10,7 +10,7 @@ from models.HierarchicalClustering import *
 from models.AverageCorrelation import *
 from models.PathAnalysis import *
 
-def preprocess(dataframe):
+def preprocess(dataframe, smoothing):
 
     new_df = pd.DataFrame(columns=dataframe.columns)
 
@@ -21,10 +21,10 @@ def preprocess(dataframe):
         for j in dataframe.columns:
 
             EEG = dataframe[j][i]
-
-            EEG = eliminateOutliers(EEG)
-            #EEG = SGSmoothing(EEG)
-            EEG = waveletShrinkageDenoising(EEG)
+            if smoothing == 'SG':
+                EEG = SGSmoothing(EEG)
+            elif smoothing == 'WSD':
+                EEG = waveletShrinkageDenoising(EEG)
 
             row.append(EEG)
 
@@ -34,7 +34,18 @@ def preprocess(dataframe):
 
     return new_df
 
-def hierarchicalClustering(dataframe, labels):
+def CorrelationAveragingModel(dataframe):
+
+    print('Correlation Matrix..')
+    correlMatArray = correlationDataFrame(dataframe)
+
+    print('Averaging..')
+    corelmat = ReinforcedAverageCorrelationMatrix(correlMatArray)
+
+    return corelmat
+
+
+def hierarchicalClusteringModel(dataframe, labels):
 
     print('Correlation Matrix..')
     correlMatArray = correlationDataFrame(dataframe)
@@ -47,15 +58,28 @@ def hierarchicalClustering(dataframe, labels):
 
     return dendroarray
 
+def BayesianPathModel(dataframe, slices, pathnb, positionDict, labels):
 
-def PathAnalysisModel(dataframe, labels):
+    print('Preprocessing...')
+    PreprocessedSG = preprocess(dataframe, 'SG')
+    PreprocessedWSD = preprocess(dataframe, 'WSD')
 
-    splitedArray = SlicedCorrelationDataframe(dataframe, 10)[0]
-    correlationFrequencyMatrix = HighCorrelationfrequencyMatrix(splitedArray)
-    G = createConnectedWeightedGraph(DictionnaryofPosition, correlationFrequencyMatrix, labels)
-    path = findPotentialMostUsedPath(G, correlationFrequencyMatrix, labels)
+    print('General Correlation..')
+    generalCorrelMatrix = correlationDataFrame(PreprocessedWSD)
 
-    return path
+    print('Sliced Correlation..')
+    slicedCorrelArray = SlicedCorrelationDataframe(PreprocessedSG, slices)
+
+    print('Bayesian Probability Matrix..')
+    BayesianMatrix = HighCorrelationfrequencyMatrix(slicedCorrelArray, generalCorrelMatrix)
+
+    print('Connected Weighted Graph..')
+    G = createConnectedWeightedGraph(positionDict, BayesianMatrix, labels)
+
+    print('Paths..')
+    paths = findPotentialMostUsedPath(G, BayesianMatrix, labels, pathnb)
+
+    return paths
 
 
 def correlationDataFrame(dataframe):
@@ -78,9 +102,16 @@ def correlationDataFrame(dataframe):
     return np.array(correlation)
 
 
-def plotcorrelation(correlationarray):
+def plotcorrelation(correlationarray, labels):
 
     f, ax = plt.subplots(figsize=(12, 9))
-    sns.heatmap(correlationarray, vmin=0.0, vmax=1.0, square=True, cmap="YlGnBu")
+    sns.heatmap(correlationarray, vmin=0.0, vmax=1.0, square=True, cmap="YlGnBu", yticklabels=False, xticklabels=False)
+
+    plt.yticks(range(len(labels)), labels.tolist(), size='small')
+    plt.xticks(range(len(labels)), labels.tolist(), size='small', rotation=90)
     f.tight_layout()
+
     plt.show()
+
+
+
