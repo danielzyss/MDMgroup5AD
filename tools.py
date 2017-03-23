@@ -44,7 +44,6 @@ def CorrelationAveragingModel(dataframe):
 
     return corelmat
 
-
 def hierarchicalClusteringModel(dataframe, labels):
 
     print('Correlation Matrix..')
@@ -79,8 +78,10 @@ def BayesianPathModel(dataframe, slices, pathnb, positionDict, labels):
     print('Paths..')
     paths = findPotentialMostUsedPath(G, BayesianMatrix, labels, pathnb)
 
-    return paths
+    print('Plotting..')
+    plotPath(paths, DictionnaryofPosition)
 
+    return paths
 
 def correlationDataFrame(dataframe):
 
@@ -100,7 +101,6 @@ def correlationDataFrame(dataframe):
         correlation.append(correlMatrix)
 
     return np.array(correlation)
-
 
 def plotcorrelation(correlationarray, labels):
 

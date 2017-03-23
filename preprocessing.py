@@ -75,7 +75,6 @@ def waveletShrinkageDenoising(EEG):
 
     return signal
 
-
 def cwt(x, dt, scales, wf='dog', p=2):
     """Continuous Wavelet Tranform.
 
@@ -158,7 +157,6 @@ def icwt(X, dt, scales, wf='dog', p=2):
 
     return x
 
-
 def angularfreq(N, dt):
     """Compute angular frequencies.
 
@@ -185,7 +183,6 @@ def angularfreq(N, dt):
 
     return w
 
-
 def morletft(s, w, w0, dt):
     """Fourier tranformed morlet function.
 
@@ -208,11 +205,9 @@ def morletft(s, w, w0, dt):
 
     return wavelet
 
-
 def normalization(s, dt):
     PI2 = 2 * np.pi
     return np.sqrt((PI2 * s) / dt)
-
 
 def SGSmoothing(EEG):
     return sgl.savgol_filter(EEG,101,2)

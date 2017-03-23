@@ -8,6 +8,9 @@ import networkx as nx
 from scipy.spatial.distance import euclidean
 from models.HierarchicalClustering import *
 from models.AverageCorrelation import *
+from matplotlib import cm
+import matplotlib as mpl
+import matplotlib.patches as patches
 import tqdm
 
 
@@ -139,3 +142,35 @@ def SlicedCorrelationDataframe(dataframe, slices):
         correlation.append(np.array(correlationslicearray))
 
     return np.array(correlation)
+
+
+def plotPath(paths, PosDict):
+
+    fig = plt.figure()
+
+    Z = [[0, 0], [0, 0]]
+    levels = np.linspace(0,1,len(paths))
+    CS3 = plt.contourf(Z, levels, cmap=cm.viridis)
+    fig.clf()
+
+    ax = fig.add_subplot('111')
+
+    for e in PosDict.keys():
+        ax.scatter(PosDict[e][0], PosDict[e][1], marker='x', s=30, color='k')
+
+    colors = [cm.viridis(x) for x in np.linspace(0, 1, len(paths))]
+
+    for coef, path in enumerate(paths):
+        coef = len(colors) - 1 - coef
+        for p in range(0, len(path) -1):
+            x = [PosDict[path[p]][0], PosDict[path[p+1]][0]]
+            y = [PosDict[path[p]][1], PosDict[path[p+1]][1]]
+            ax.plot(x, y, color=colors[coef], alpha=0.8, linewidth = 5.0)
+
+    circle = patches.Circle(xy=[55,55], radius=60, edgecolor="k", facecolor="none")
+    ax.add_patch(circle)
+
+    fig.colorbar(CS3)
+    plt.title('Most Probable Paths in the Brain')
+
+    plt.show()

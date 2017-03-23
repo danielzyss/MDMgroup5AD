@@ -13,7 +13,6 @@ def correlationmatrix2graph(correlmatrixarray):
 
     return grapharray
 
-
 def graph2minimumspanningtree(grapharray):
 
     minimumspanningtreearray = []
@@ -23,7 +22,6 @@ def graph2minimumspanningtree(grapharray):
         minimumspanningtreearray.append(mst)
 
     return minimumspanningtreearray
-
 
 def mst2dendrogram(mstarray, lab):
 

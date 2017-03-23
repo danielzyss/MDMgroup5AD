@@ -5,7 +5,6 @@ import seaborn as sns
 
 from preprocessing import *
 
-
 def AverageCorrelationMatrix(correlMatrixArray):
 
     avgmat = np.empty(shape=correlMatrixArray[0].shape)
@@ -15,7 +14,6 @@ def AverageCorrelationMatrix(correlMatrixArray):
             avgmat[row, col] = np.mean(np.array([x[row, col] for x in correlMatrixArray]))
 
     return avgmat
-
 
 def ReinforcedAverageCorrelationMatrix(correlMatrixArray):
 
