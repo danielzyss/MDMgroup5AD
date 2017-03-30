@@ -41,6 +41,18 @@ if __name__ == '__main__':
     ADeyesclosed, ADeyesopened, CNTLeyesclosed, CNTLeyesopened = loadDataFrames()
     labels = ExtractLabels()
 
-    BayesianPathModel(ADeyesclosed, 50, 20, DictionnaryofPosition, labels)
+    #MODEL 1: Averaged Correlation
 
+    ADeyesclosed_preprocessed = preprocess(ADeyesclosed, 'WSD')
+    ADeyesclosed_Averaged_Correlation = CorrelationAveragingModel(ADeyesclosed_preprocessed)
+    plotcorrelation(ADeyesclosed_Averaged_Correlation, labels)
 
+    #MODEL 2: Hierarchical Clusteting
+
+    ADeyesclosed_preprocessed = preprocess(ADeyesclosed, 'WSD')
+    dendrogram_arrays = hierarchicalClusteringModel(ADeyesclosed_preprocessed, labels)
+
+    #MODEL 3: Bayesian Path Analysis
+
+    list_of_paths = BayesianPathModel(ADeyesclosed, 100, 30, DictionnaryofPosition, labels)
+    print(list_of_paths)

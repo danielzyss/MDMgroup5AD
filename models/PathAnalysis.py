@@ -123,7 +123,7 @@ def SlicedCorrelationDataframe(dataframe, slices):
 
         correlationslicearray = []
 
-        splitedarray = [np.array(np.split(y, slices)) for y in [x[:len(x) - 1] for x in dataframe.iloc[i, :].as_matrix()]]
+        splitedarray = [np.array(np.split(y, slices)) for y in [x for x in dataframe.iloc[i, :].as_matrix()]]
 
         slicesarray = []
         for n in range(0, slices):
@@ -165,12 +165,11 @@ def plotPath(paths, PosDict):
         for p in range(0, len(path) -1):
             x = [PosDict[path[p]][0], PosDict[path[p+1]][0]]
             y = [PosDict[path[p]][1], PosDict[path[p+1]][1]]
-            ax.plot(x, y, color=colors[coef], alpha=0.8, linewidth = 5.0)
+            ax.plot(x, y, color=colors[coef], alpha=0.8, linewidth = 5.0, marker='o')
 
     circle = patches.Circle(xy=[55,55], radius=60, edgecolor="k", facecolor="none")
     ax.add_patch(circle)
 
     fig.colorbar(CS3)
-    plt.title('Most Probable Paths in the Brain')
-
     plt.show()
+

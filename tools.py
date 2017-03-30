@@ -14,13 +14,14 @@ def preprocess(dataframe, smoothing):
 
     new_df = pd.DataFrame(columns=dataframe.columns)
 
-    print('Eliminating Outliers..')
+    print('Eliminating Outliers + Denoising..')
 
-    for i in range(0, dataframe.shape[0]):
+
+    for i in dataframe.index:
         row =[]
         for j in dataframe.columns:
-
-            EEG = dataframe[j][i]
+            EEG = dataframe.get_value(i,j)
+            EEG = eliminateOutliers(EEG)
             if smoothing == 'SG':
                 EEG = SGSmoothing(EEG)
             elif smoothing == 'WSD':
@@ -29,8 +30,6 @@ def preprocess(dataframe, smoothing):
             row.append(EEG)
 
         new_df.loc[i] = row
-
-    print('Denoising..')
 
     return new_df
 
@@ -53,7 +52,7 @@ def hierarchicalClusteringModel(dataframe, labels):
     print('Minimum Spanning Tree..')
     mstArray = graph2minimumspanningtree(graphArray)
     print('Dendrogram.. ')
-    dendroarray = mst2dendrogram(mstArray, labels)
+    dendroarray, linkagematrix = mst2dendrogram(mstArray, labels)
 
     return dendroarray
 
@@ -79,7 +78,7 @@ def BayesianPathModel(dataframe, slices, pathnb, positionDict, labels):
     paths = findPotentialMostUsedPath(G, BayesianMatrix, labels, pathnb)
 
     print('Plotting..')
-    plotPath(paths, DictionnaryofPosition)
+    plotPath(paths, positionDict)
 
     return paths
 
@@ -87,7 +86,7 @@ def correlationDataFrame(dataframe):
 
     correlation = []
 
-    for i in range(0, dataframe.shape[0]):
+    for i in dataframe.index:
 
         correlMatrix = np.zeros(shape=(len(dataframe.columns), len(dataframe.columns)))
 

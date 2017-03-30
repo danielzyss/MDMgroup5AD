@@ -26,13 +26,16 @@ def graph2minimumspanningtree(grapharray):
 def mst2dendrogram(mstarray, lab):
 
     clusteringarray = []
+    linkagearray = []
 
-    for mst in mstarray:
+    for i, mst in enumerate(mstarray):
         distance = nx.floyd_warshall_numpy(mst)
         linkagematrix = linkage(distance)
         dendro = dendrogram(linkagematrix, truncate_mode='mlab', labels=lab )
         clusteringarray.append(dendro)
+        linkagearray.append(linkagematrix)
+        plt.title('Hierarchical Clustering for Patient #' + str(i+1) + ' with Control-eyes opened')
         plt.show()
 
-    return clusteringarray
+    return clusteringarray, linkagearray
 

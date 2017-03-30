@@ -9,7 +9,7 @@ def eliminateOutliers(EEG):
 
     newEEG = np.array([])
 
-    for section in np.split(EEG[:EEG.shape[0]-1], 10):
+    for section in np.split(EEG[:EEG.shape[0]], 10):
         mu = np.mean(section)
         sigma = np.std(section)
         for i, p in enumerate(section):
@@ -62,7 +62,7 @@ def WaveletthresholdEstimation(X):
 
 def waveletShrinkageDenoising(EEG):
 
-    W = cwt(EEG, 0.1,np.arange(1,11), wf='morlet', p=1)
+    W = cwt(EEG, 0.1,np.arange(1,31), wf='morlet', p=1)
 
     threshold = WaveletthresholdEstimation(EEG)
 
@@ -71,7 +71,7 @@ def waveletShrinkageDenoising(EEG):
         neww = pywt.threshold(w, threshold, 'hard')
         newW.append(neww)
 
-    signal = icwt(newW, 0.1, np.arange(1,11), wf='morlet', p=1)
+    signal = icwt(newW, 0.1, np.arange(1,31), wf='morlet', p=1)
 
     return signal
 
